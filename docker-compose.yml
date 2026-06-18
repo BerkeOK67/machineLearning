@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ml_platform_postgres
+    environment:
+      POSTGRES_DB: ml_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - ml_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: ml_platform_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ml_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python Flask API
+  python_api:
+    build:
+      context: ./backend/python_api
+      dockerfile: Dockerfile
+    container_name: ml_platform_python_api
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ml_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DB: ml_platform
+    volumes:
+      - ./backend/python_api:/app
+      - ml_models:/app/models
+      - uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - ml_network
+    command: python app.py
+
+  # Frontend (Optional - uncomment when ready)
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: ml_platform_frontend
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - python_api
+  #   networks:
+  #     - ml_network
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  ml_models:
+  uploads:
+
+networks:
+  ml_network:
+    driver: bridge

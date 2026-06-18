@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Platform — Akıllı Veri Analitiği</title>
+    <meta name="description" content="Akıllı makine öğrenmesi platformu — veri yükleme, model eğitimi ve AWS SageMaker entegrasyonu">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+</div>
+
+<div class="app-wrapper">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🤖</div>
+            <div>
+                <div class="brand-name">ML Platform</div>
+                <div class="brand-sub">Veri Analitiği</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard')">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" id="nav-upload" onclick="showSection('upload')">
+                <span class="nav-icon">📂</span>
+                <span>Veri Yükle</span>
+            </button>
+            <button class="nav-item" id="nav-datasets" onclick="showSection('datasets')">
+                <span class="nav-icon">🗂️</span>
+                <span>Datasetler</span>
+            </button>
+            <button class="nav-item" id="nav-models" onclick="showSection('models')">
+                <span class="nav-icon">🧠</span>
+                <span>Modeller</span>
+            </button>
+            <button class="nav-item" id="nav-predict" onclick="showSection('predict')">
+                <span class="nav-icon">🎯</span>
+                <span>Tahmin</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar">👤</div>
+                <div class="user-details">
+                    <div class="user-name" id="sidebarUserName">Kullanıcı</div>
+                    <div class="user-role">ML Engineer</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn" onclick="logout()">
+                <span>⏻</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Login Page -->
+        <div id="loginSection" class="auth-page active">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">🤖</div>
+                    <h1>ML Platform</h1>
+                    <p>Akıllı Veri Analitiği & Makine Öğrenmesi</p>
+                </div>
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label>E-posta</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉️</span>
+                            <input type="email" id="loginEmail" placeholder="ornek@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Şifre</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Giriş Yap</button>
+                </form>
+                <p class="auth-switch">
+                    Hesabınız yok mu? <a href="#" onclick="showRegister()">Kayıt Ol</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Register Page -->
+        <div id="registerSection" class="auth-page">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">🤖</div>
+                    <h1>Kayıt Ol</h1>
+                    <p>Hesap oluşturun ve hemen başlayın</p>
+                </div>
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label>Ad Soyad</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="registerName" placeholder="Adınız Soyadınız" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>E-posta</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">✉️</span>
+                            <input type="email" id="registerEmail" placeholder="ornek@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Şifre</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="registerPassword" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+                </form>
+                <p class="auth-switch">
+                    Zaten hesabınız var mı? <a href="#" onclick="showLogin()">Giriş Yap</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <div class="page-header">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p class="page-sub">Platform genel durumu</p>
+                </div>
+                <div class="aws-badge" id="awsBadge">
+                    <span class="badge-dot"></span>
+                    <span>AWS Bağlı</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card stat-blue">
+                    <div class="stat-icon">📂</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Toplam Dataset</div>
+                        <div class="stat-number" id="totalDatasets">—</div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+                <div class="stat-card stat-purple">
+                    <div class="stat-icon">🧠</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Eğitilmiş Modeller</div>
+                        <div class="stat-number" id="totalModels">—</div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+                <div class="stat-card stat-green">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Toplam Tahmin</div>
+                        <div class="stat-number" id="totalPredictions">—</div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>Hızlı Başlat</h3>
+                <div class="actions-grid">
+                    <button class="action-card" onclick="showSection('upload')">
+                        <span class="action-icon">📂</span>
+                        <span class="action-title">Veri Yükle</span>
+                        <span class="action-desc">CSV veya Excel dosyası</span>
+                    </button>
+                    <button class="action-card" onclick="showSection('datasets')">
+                        <span class="action-icon">🗂️</span>
+                        <span class="action-title">Datasetler</span>
+                        <span class="action-desc">Tüm datasetleri görüntüle</span>
+                    </button>
+                    <button class="action-card" onclick="showSection('models')">
+                        <span class="action-icon">🧠</span>
+                        <span class="action-title">Model Eğit</span>
+                        <span class="action-desc">Lokal veya AWS SageMaker</span>
+                    </button>
+                    <button class="action-card" onclick="showSection('predict')">
+                        <span class="action-icon">🎯</span>
+                        <span class="action-title">Tahmin Yap</span>
+                        <span class="action-desc">Eğitilmiş modelle tahmin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="upload" class="section">
+            <div class="page-header">
+                <div>
+                    <h2>Veri Yükle</h2>
+                    <p class="page-sub">CSV veya Excel dosyanızı yükleyin</p>
+                </div>
+            </div>
+            <div class="content-grid">
+                <div class="card">
+                    <h3 class="card-title">📂 Dosya Yükle</h3>
+                    <form id="uploadForm">
+                        <div class="form-group">
+                            <label>Dataset Adı</label>
+                            <input type="text" id="datasetName" placeholder="Örn: Iris Dataset" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Dosya Seç</label>
+                            <div class="file-drop" id="fileDrop" onclick="document.getElementById('datasetFile').click()">
+                                <span class="file-drop-icon">📁</span>
+                                <span class="file-drop-text">CSV veya Excel dosyası seçin</span>
+                                <span class="file-drop-hint">.csv, .xlsx, .xls</span>
+                            </div>
+                            <input type="file" id="datasetFile" accept=".csv,.xlsx,.xls" required style="display:none" onchange="updateFileName(this)">
+                        </div>
+                        <button type="submit" class="btn btn-primary">⬆️ Yükle</button>
+                    </form>
+                </div>
+
+                <div id="uploadResult" class="card" style="display: none;">
+                    <h3 class="card-title">✅ Yükleme Başarılı</h3>
+                    <div id="datasetInfo"></div>
+                    <button class="btn btn-secondary mt-12" onclick="analyzeDataset()">📊 Veriyi Analiz Et</button>
+                </div>
+
+                <div id="analysisResult" class="card" style="display: none;">
+                    <h3 class="card-title">📊 Analiz Sonuçları</h3>
+                    <div id="analysisInfo"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Models Section -->
+        <div id="models" class="section">
+            <div class="page-header">
+                <div>
+                    <h2>Model Eğitimi</h2>
+                    <p class="page-sub">Yeni model eğit ve yönet</p>
+                </div>
+            </div>
+            <div class="content-grid">
+                <div class="card">
+                    <h3 class="card-title">🧠 Yeni Model Eğit</h3>
+                    <form id="trainModelForm">
+                        <div class="form-group">
+                            <label>Dataset</label>
+                            <select id="datasetSelect" required>
+                                <option value="">Seçiniz...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Hedef Sütun</label>
+                            <input type="text" id="targetColumn" placeholder="Tahmin edilecek sütun" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Model Tipi</label>
+                                <select id="modelType" required>
+                                    <option value="classification">Sınıflandırma</option>
+                                    <option value="regression">Regresyon</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Eğitim Ortamı</label>
+                                <select id="trainingMode" required>
+                                    <option value="local">🖥️ Lokal</option>
+                                    <option value="cloud">☁️ AWS SageMaker</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Algoritma</label>
+                            <select id="algorithmSelect" required>
+                                <option value="RandomForest">Random Forest</option>
+                                <option value="DecisionTree">Decision Tree</option>
+                                <option value="LogisticRegression">Logistic Regression</option>
+                                <option value="XGBoost">XGBoost</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">⚡ Modeli Eğit</button>
+                    </form>
+
+                    <div id="trainingResult" class="result-box" style="display: none;">
+                        <h4 id="trainingResultTitle">Eğitim Tamamlandı!</h4>
+                        <div id="modelMetrics"></div>
+                        <div class="btn-group mt-12">
+                            <button id="checkJobStatusBtn" class="btn btn-secondary btn-sm" style="display:none;" onclick="checkJobStatus()">☁️ Job Durumu</button>
+                            <button id="deployModelBtn" class="btn btn-secondary btn-sm" style="display:none;" onclick="deployModel()">🚀 Dağıt</button>
+                            <button id="checkEndpointBtn" class="btn btn-secondary btn-sm" style="display:none;" onclick="checkEndpointStatus()">📡 Endpoint Durumu</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card full-width">
+                    <h3 class="card-title">📋 Eğitilmiş Modeller</h3>
+                    <div id="modelsList" class="models-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datasets Section -->
+        <div id="datasets" class="section">
+            <div class="page-header">
+                <div>
+                    <h2>Datasetler</h2>
+                    <p class="page-sub">Yüklenen tüm datasetler</p>
+                </div>
+                <button class="btn btn-secondary" style="width:auto" onclick="showSection('upload')">+ Yeni Yükle</button>
+            </div>
+            <div id="datasetsGrid" class="datasets-grid">
+                <p style="color:var(--text-muted)">Yükleniyor...</p>
+            </div>
+
+            <!-- Dataset detay modalı -->
+            <div id="datasetDetailCard" class="card" style="display:none; margin-top:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3 class="card-title" id="detailTitle" style="margin:0">Dataset Detayı</h3>
+                    <button onclick="document.getElementById('datasetDetailCard').style.display='none'" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
+                </div>
+                <div id="detailMeta"></div>
+                <div id="detailPreview" style="margin-top:16px; overflow-x:auto;"></div>
+            </div>
+        </div>
+
+        <div id="predict" class="section">
+            <div class="page-header">
+                <div>
+                    <h2>Tahmin Yap</h2>
+                    <p class="page-sub">Eğitilmiş model ile tahmin çalıştırın</p>
+                </div>
+            </div>
+            <div class="content-grid">
+                <div class="card">
+                    <h3 class="card-title">🎯 Tahmin Parametreleri</h3>
+                    <form id="predictForm">
+                        <div class="form-group">
+                            <label>Model Seç</label>
+                            <select id="modelSelect" required>
+                                <option value="">Seçiniz...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Girdi Verileri (JSON)</label>
+                            <textarea id="inputData" rows="7" placeholder='{"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}' required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">⚡ Tahmin Yap</button>
+                    </form>
+                </div>
+
+                <div id="predictionResult" class="card" style="display: none;">
+                    <h3 class="card-title">✨ Tahmin Sonucu</h3>
+                    <div id="predictionInfo"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
