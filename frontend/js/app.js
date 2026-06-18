@@ -1,5 +1,9 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+// GitHub Pages (HTTPS) üzerinden localhost'a (HTTP) doğrudan istek atılması tarayıcılar tarafından engellenir (Mixed Content).
+// Eğer backend'i Render, Railway veya AWS gibi bir yere deploy ederseniz, 'https://backend-url.com/api' şeklinde güncelleyebilirsiniz.
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://your-deployed-backend-url.com/api'; 
 let authToken = localStorage.getItem('authToken');
 let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
 let currentDatasetId = null;
